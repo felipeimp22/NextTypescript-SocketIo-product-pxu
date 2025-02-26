@@ -27,6 +27,7 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  inventory:number;
 }
 
 const Header: React.FC = () => {
@@ -58,19 +59,36 @@ const Header: React.FC = () => {
   }, [socket]);
 
   const increaseQuantity = (itemId: string) => {
-    const updatedCart = cartItems.map((item) =>
-      item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setCartItems(updatedCart);
-
-    socket?.emit("cart:add", {
-      userId: localStorage.getItem("userId"),
-      item: {
-        id: itemId,
-        quantity: 1,
-      },
-    });
+    const item = cartItems.find((item) => item.id === itemId);
+    if (item && item.quantity <= item?.inventory) {
+      const updatedCart = cartItems.map((item) =>
+        item.id === itemId
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+  
+      setCartItems(updatedCart);
+  
+      socket?.emit("cart:add", {
+        userId: localStorage.getItem("userId"),
+        item: {
+          id: itemId,
+          quantity: 1,
+        },
+      });
+    } else {
+      toast.warning("Cannot add more. Reached maximum inventory limit.", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
+    }
   };
+  
 
   const decreaseQuantity = (itemId: string) => {
     const updatedCart = cartItems.map((item) =>

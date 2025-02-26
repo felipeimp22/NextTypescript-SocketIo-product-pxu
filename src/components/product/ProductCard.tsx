@@ -4,7 +4,14 @@ import useSocket from "@/hooks/useSocket";
 import ProductImageModal from "./ProductImageModal";
 import { toast } from "react-toastify";
 import { AddToCartButton, Card, CardBody, ImageContainer, Price, StockStatus } from "./styles";
-
+interface ItemInterface {
+  id: string;
+  title: string;
+  price: number;
+  quantity: number;
+  image: string;
+  inventory:number;
+}
 interface ProductCardProps {
   product: Product;
 }
@@ -26,32 +33,50 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     setModalOpen(false);
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    if (product.inventory > 0) {
-      socket?.emit("cart:add", {
-        userId: localStorage.getItem("userId"),
-        item: {
-          id: product._id,
-          title: product.title,
-          price: product.price,
-          quantity: 1,
-          image: product.images[0] || "/assets/jpg/mapple leaf.jpg",
-        },
-      });
-    } else {
-      toast.error("This product is out of stock!", {
-        position: "top-center",
-        autoClose: 3000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-      });
-    }
-  };
+const handleAddToCart = (e: React.MouseEvent) => {
+  e.stopPropagation();
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const existingItem = cart.find((item:ItemInterface) => item.id === product._id);
+  const currentQuantity = existingItem ? existingItem.quantity : 0;
+  if (currentQuantity >= product.inventory) {
+    toast.warning("Cannot add more. Reached maximum inventory limit.", {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: "colored",
+    });
+    return;
+  }
+
+  if (product.inventory > 0) {
+    socket?.emit("cart:add", {
+      userId: localStorage.getItem("userId"),
+      item: {
+        id: product._id,
+        title: product.title,
+        price: product.price,
+        quantity: 1,
+        inventory: product.inventory,
+        image: product.images[0] || "/assets/jpg/mapple leaf.jpg",
+      },
+    });
+  } else {
+    toast.error("This product is out of stock!", {
+      position: "top-center",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "colored",
+    });
+  }
+};
+
 
   return (
     <>
