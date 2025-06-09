@@ -1,7 +1,7 @@
 
 # 👜 Product Platform
 
-Welcome to the **Product Platform**, a cutting-edge web application designed to deliver seamless audiobook management, chapter creation, and user engagement through modern technologies and clean code principles.
+Welcome to the **Product Platform**, a cutting-edge web application designed to deliver seamless product management, and user engagement through modern technologies and clean code principles.
 
 ---
 
